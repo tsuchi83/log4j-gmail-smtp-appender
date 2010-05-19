@@ -50,9 +50,13 @@ import com.sun.mail.smtp.SMTPTransport;
  * Extension of Log4j {@link SMTPAppender} for Gmail support
  * 
  * @author abhinav@tgerm.com
- * 
+ * @see <a href="http://code.google.com/p/log4j-gmail-smtp-appender/">Google Code Project</a> <br/>
+ *      <a href="http://www.tgerm.com">My Blog</a>
  */
 public class GmailSMTPAppender extends SMTPAppender {
+	/**
+	 * Cached session for later use i.e. while sending emails
+	 */
 	protected Session session;
 
 	public GmailSMTPAppender() {
@@ -92,9 +96,6 @@ public class GmailSMTPAppender extends SMTPAppender {
 	 * Send the contents of the cyclic buffer as an e-mail message.
 	 */
 	protected void sendBuffer() {
-
-		// Note: this code already owns the monitor for this
-		// appender. This frees us from needing to synchronize on 'cb'.
 		try {
 			MimeBodyPart part = new MimeBodyPart();
 
@@ -104,7 +105,6 @@ public class GmailSMTPAppender extends SMTPAppender {
 				sbuf.append(t);
 			int len = cb.length();
 			for (int i = 0; i < len; i++) {
-				// sbuf.append(MimeUtility.encodeText(layout.format(cb.get())));
 				LoggingEvent event = cb.get();
 				sbuf.append(layout.format(event));
 				if (layout.ignoresThrowable()) {
@@ -133,6 +133,14 @@ public class GmailSMTPAppender extends SMTPAppender {
 		}
 	}
 
+	/**
+	 * Pulled email send stuff i.e. Transport.send()/Transport.sendMessage(). So
+	 * that on required this logic can be enhanced.
+	 * 
+	 * @param msg
+	 *            Email Message
+	 * @throws MessagingException
+	 */
 	protected void send(Message msg) throws MessagingException {
 		SMTPTransport t = (SMTPTransport) session.getTransport("smtps");
 		try {
